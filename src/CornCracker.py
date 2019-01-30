@@ -84,6 +84,8 @@ def get_all_main_contract_data(main_contracts_path=working_dir + "/data/ZC/front
 def save_data_to_path(all_data, data_root_path = working_dir + "/data/combined_data.csv"):
     all_data.to_csv(data_root_path)
 
+def read_data_from_path(data_root_path = working_dir + "/data/combined_data.csv"):
+    return pd.read_csv(data_root_path, header=0, index_col=0, parse_dates=[0])
 
 def get_sub_data_between_time_interval(all_data,
                                        start_date="2016-01-03",
