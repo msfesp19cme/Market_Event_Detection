@@ -109,7 +109,7 @@ def get_sub_data_between_time_interval(all_data,
         if include else \
         (all_data.index > start_index) & (all_data.index < end_index)
     sub_data = all_data.loc[t_interval]
-    return sub_data
+    return sub_data.dropna()
 
 
 def get_sub_data_in_no_of_transactions(all_data,
@@ -131,7 +131,7 @@ def get_sub_data_in_no_of_transactions(all_data,
         if include else \
         (all_data.index > start_index)
     sub_data = all_data.loc[t_interval][:no_of_trans]
-    return sub_data
+    return sub_data.dropna()
 
 
 def get_combined_sub_data_by_period(all_data,
@@ -166,7 +166,7 @@ def get_combined_sub_data_by_period(all_data,
     combined_data = combined_data.reindex(columns=['Open', 'High', 'Low', 'Close', 'TotalVolume'])
     combined_data.index = pd.DatetimeIndex(combined_data.index)
     return combined_data.resample(period).agg(
-        {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'TotalVolume': 'sum'})
+        {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'TotalVolume': 'sum'}).dropna()
 
 def get_stat_val_between_time_interval(sub_data,
                                        attribute="Close",
