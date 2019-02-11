@@ -188,3 +188,106 @@ def get_stat_val_between_time_interval(sub_data,
 
     return stat_dict[stat_method]
 
+
+from numpy import linalg as LA
+
+
+def nor(sub_data):
+    ret = sub_data.apply(LA.norm, axis=0)
+    return ret.to_frame().T
+
+
+def don(nor1, nor2):
+    if len(nor1) == 0:
+        return None
+    return nor2 - nor1
+
+
+def rbind(nor, don):
+    return nor.append(don, ignore_index=True)
+
+
+def rbind_list(list):
+    ret = list[0]
+    for i in range(1, len(list)):
+        ret = ret.append(list[i])
+    return ret
+
+
+def ts_mean(sub_data):
+    ret = sub_data.apply(np.mean, axis=0)
+    return ret.to_frame().T
+
+
+def ts_std(sub_data):
+    ret = sub_data.apply(np.std, axis=0)
+    return ret.to_frame().T
+
+
+def ts_max(sub_data):
+    ret = sub_data.apply(np.max, axis=0)
+    return ret.to_frame().T
+
+
+def ts_min(sub_data):
+    ret = sub_data.apply(np.min, axis=0)
+    return ret.to_frame().T
+
+
+def ts_ptp(sub_data):
+    ret = sub_data.apply(np.ptp, axis=0)
+    return ret.to_frame().T
+
+
+def ts_1Q(sub_data):
+    ret = sub_data.apply(lambda x: np.percentile(x, 25), axis=0)
+    return ret.to_frame().T
+
+
+def ts_2Q(sub_data):
+    ret = sub_data.apply(lambda x: np.percentile(x, 50), axis=0)
+    return ret.to_frame().T
+
+def ts_3Q(sub_data):
+    ret = sub_data.apply(lambda x: np.percentile(x, 75), axis=0)
+    return ret.to_frame().T
+
+def get_statistic_features_helper(sub_data):
+    ret = rbind_list(
+        [ts_mean(sub_data), ts_min(sub_data), ts_max(sub_data), ts_1Q(sub_data),
+         ts_2Q(sub_data), ts_3Q(sub_data), ts_std(sub_data), ts_ptp(sub_data)])
+    return ret
+
+def get_statistic_features(sub_G_list):
+    combined_data = rbind_list(sub_G_list)
+    combined_data_nor = combined_data[combined_data.index == 0]
+    H_nor = get_statistic_features_helper(combined_data_nor)
+    combined_data_don = combined_data[combined_data.index == 1]
+    H_don = get_statistic_features_helper(combined_data_don)
+    return rbind(H_nor, H_don)
+
+def generate_G_list(all_data, start_index=0, b=4, step=2):
+    G_list = []
+    nor1 = nor(all_data[start_index:start_index + b])
+    for i in range(start_index + step, len(all_data), step):
+        nor2 = nor(all_data[i:i + b])
+        don_temp = don(nor1, nor2)
+        g_temp = rbind(nor2, don_temp)
+        G_list.append(g_temp)
+    return G_list
+
+
+def generate_H_list(G_list, f=2, step=2):
+    H_list = []
+    for i in range(0, len(G_list), step):
+        sub_G_list = G_list[i:i + f]
+        if len(sub_G_list) < f:
+            break
+        h_temp = get_statistic_features(sub_G_list)
+        H_list.append(h_temp)
+    return H_list
+
+
+def data_enrich(all_data, start_index, end_index, b=4, step_g=2, f=2, step_h=2):
+    return generate_H_list(generate_G_list(all_data[start_index:end_index], start_index=start_index, b=b, step=step_g),
+                           f=f, step=step_h)
