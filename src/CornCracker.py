@@ -288,6 +288,8 @@ def generate_H_list(G_list, f=2, step=2):
     return H_list
 
 
-def data_enrich(all_data, start_index, end_index, b=4, step_g=2, f=2, step_h=2):
+def data_enrich(all_data, start_index, end_index=0, b=4, step_g=2, f=2, step_h=2):
+    if end_index == 0:
+        end_index = len(all_data)
     return generate_H_list(generate_G_list(all_data[start_index:end_index], start_index=start_index, b=b, step=step_g),
                            f=f, step=step_h)
